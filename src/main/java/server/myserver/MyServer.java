@@ -25,7 +25,7 @@ public class MyServer {
 
     public void start(){
         System.out.println("СЕРВЕР ЗАПУЩЕН!");
-        System.out.println("---------------");
+        System.out.println("----------------");
         try {
 
             while (true) {
