@@ -9,12 +9,12 @@ public class SimpleAuthenticationServiceImpl implements AuthenticationService {
 
     private static final List<User> clients = List.of(
             new User("martin", "1", "George_Martin"),
-            new User("batman","2","Bruce_Wayne"),
-            new User("gena", "3", "Gandalf_TheGrey" ),
-            new User("bob", "4", "SpongeBob"),
-            new User("bender", "5", "Bender_TheRobot"),
-            new User("mike", "7","Mike"),
-            new User("bike", "8", "Bike")
+            new User("batman","1","Bruce_Wayne"),
+            new User("gena", "1", "Gandalf_TheGrey" ),
+            new User("bob", "1", "SpongeBob"),
+            new User("bender", "1", "Bender_TheRobot"),
+            new User("mike", "1","Mike"),
+            new User("bike", "1", "Bike")
     );
 
     @Override

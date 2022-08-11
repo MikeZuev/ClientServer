@@ -3,6 +3,7 @@ package server.myserver;
 import server.handlers.ClientHandler;
 import server.services.AuthenticationService;
 import server.services.impl.SimpleAuthenticationServiceImpl;
+import server.services.impl.SqlAuthenticationServiceImpl;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -15,15 +16,17 @@ public class MyServer {
     private final ServerSocket serverSocket;
     private final AuthenticationService authenticationService;
     private final ArrayList<ClientHandler> clients;
+    private ArrayList<String> usersOnline = new ArrayList<>();
 
     public MyServer(int port) throws IOException {
         serverSocket = new ServerSocket(port);
-        authenticationService = new SimpleAuthenticationServiceImpl();
+    //    authenticationService = new SimpleAuthenticationServiceImpl();
+        authenticationService = new SqlAuthenticationServiceImpl();
         clients = new ArrayList<>();
 
     }
 
-    public void start(){
+    public void start() {
         System.out.println("СЕРВЕР ЗАПУЩЕН!");
         System.out.println("---------------");
         try {
@@ -34,7 +37,6 @@ public class MyServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
 
 
     }
@@ -56,11 +58,15 @@ public class MyServer {
 
     public synchronized void subscribe(ClientHandler handler) {
         clients.add(handler);
+    //    usersOnline.add(handler.getUsername());
+    //    broadcastOnlineUsers(handler, usersOnline);
+
 
     }
 
     public synchronized void unsubscribe(ClientHandler handler) {
         clients.remove(handler);
+    //    usersOnline.remove(handler.getUsername());
     }
 
     public AuthenticationService getAuthenticationService() {
@@ -69,7 +75,7 @@ public class MyServer {
 
     public boolean isUsernameBusy(String username) {
         for (ClientHandler client : clients) {
-            if(client.getUsername().equals(username)) {
+            if (client.getUsername().equals(username)) {
                 return true;
 
             }
@@ -87,7 +93,7 @@ public class MyServer {
         System.exit(0);
     }
 
-    public void broadcastMessage(ClientHandler sender, String message) throws IOException {
+    public synchronized void broadcastMessage(ClientHandler sender, String message) throws IOException {
         for (ClientHandler client : clients) {
 
             client.sendMessage(sender.getUsername(), message);
@@ -96,9 +102,9 @@ public class MyServer {
 
     }
 
-    public void broadcastPrivateMessage( ClientHandler sender, String recipient, String message) throws IOException {
+    public synchronized void broadcastPrivateMessage(ClientHandler sender, String recipient, String message) throws IOException {
         for (ClientHandler client : clients) {
-            if(client.getUsername().equals(recipient)){
+            if (client.getUsername().equals(recipient)) {
                 client.sendPrivateMessage(sender.getUsername(), message);
                 sender.sendPrivateMessage(recipient, message);
                 break;
@@ -108,7 +114,38 @@ public class MyServer {
         }
 
 
-
-
     }
-}
+
+    public void broadcastServerMessage(ClientHandler sender, String message) throws IOException {
+        for (ClientHandler client : clients) {
+            if (client.getUsername().equals(sender.getUsername())) {
+                continue;
+            } else {
+                client.sendServerMessage(sender.getUsername(), message);
+            }
+
+
+        }
+    }
+
+    public void broadcastOnlineUsers(ClientHandler user) {
+        StringBuilder usersList = new StringBuilder();
+
+
+
+
+        for (ClientHandler client : clients) {
+            usersList.append(client.getUsername() + " ");
+
+            }
+        for (ClientHandler client : clients) {
+            client.sendOnlineUser(usersList);
+
+        }
+
+        }
+    }
+
+
+
+

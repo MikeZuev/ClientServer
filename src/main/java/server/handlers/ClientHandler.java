@@ -8,10 +8,12 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class ClientHandler {
     private static final String AUTH_CMD_PREFIX = "/auth"; // + login + password
     private static final String AUTHOK_CMD_PREFIX = "/authok"; // + username
+    private static final String ONLINE_USER_PREFIX = "/online"; // + adding username name to ListView
     private static final String AUTHERR_CMD_PREFIX = "/autherr"; // + error message
     private static final String CLIENT_MSG_CMD_PREFIX = "/cMsg"; // + msg
     private static final String SERVER_MSG_CMD_PREFIX = "/sMsg"; // + msg
@@ -45,6 +47,12 @@ public class ClientHandler {
                 readMessage();
             }catch(IOException e){
                 e.printStackTrace();
+                myServer.unsubscribe(this);
+                try {
+                    myServer.broadcastServerMessage(this, "Пользователь вышел из чата");
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
             }
         }).start();
     }
@@ -92,6 +100,8 @@ public class ClientHandler {
             out.writeUTF(AUTHOK_CMD_PREFIX + " " + username);
             myServer.subscribe(this);
             System.out.println("User: " + username + " connected to Chat");
+            myServer.broadcastServerMessage(this, "Пользователь " + username + " подключился к чату");
+            myServer.broadcastOnlineUsers(this);
             return true;
 
 
@@ -106,14 +116,23 @@ public class ClientHandler {
     private void readMessage() throws IOException {
         while(true){
             String message = in.readUTF();
+
             System.out.println("message | " + username + ": " + message);
-            String typeMessage = message.split("\\s+")[0];
+
+            String typeMessage = message.split(("\\s+"))[0];
+            if(!typeMessage.startsWith("/")) {
+                System.out.println("Неверный запрос");
+            }
 
 
 
             switch(typeMessage){
                 case STOP_SERVER_CMD_PREFIX -> myServer.stop();
                 case END_CLIENT_CMD_PREFIX -> closeConnection();
+                case CLIENT_MSG_CMD_PREFIX -> {
+                    String[] messageParts = message.split("\\s+", 2);
+
+                    myServer.broadcastMessage(this, messageParts[1]);}
                 case PRIVATE_MSG_CMD_PREFIX -> {
                     String[] messagePartsPrivate = message.split("\\s+", 3);
                     String recipient = messagePartsPrivate[1];
@@ -122,7 +141,8 @@ public class ClientHandler {
 
 
                 }
-                default -> myServer.broadcastMessage(this, message);
+
+                default -> System.out.println("Неверная команда");
 
             }
 
@@ -132,6 +152,11 @@ public class ClientHandler {
     private void closeConnection() throws IOException {
         clientSocket.close();
         System.out.println(username + " отключился");
+    }
+
+    public void sendServerMessage(String sender, String message) throws IOException {
+        out.writeUTF(String.format("%s %s %s", SERVER_MSG_CMD_PREFIX, this.getUsername(), message));
+
     }
 
     public void sendMessage(String sender, String message) throws IOException {
@@ -144,5 +169,13 @@ public class ClientHandler {
 
     public String getUsername() {
         return username;
+    }
+
+    public void sendOnlineUser(StringBuilder usernames) {
+        try {
+            out.writeUTF(String.format("%s %s", ONLINE_USER_PREFIX, usernames));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
