@@ -72,22 +72,6 @@ public class SqlAuthenticationServiceImpl implements AuthenticationService {
 
 
 
-    private static void findAllUsers () {
-        try {
-            ResultSet rs = stmt.executeQuery("SELECT * from users");
-            while(rs.next()) {
-                System.out.printf("%s - %s -%s", rs.getString("login"), rs.getString("password"), rs.getString("username"));
-                System.out.println();
-            }
-
-
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-
 
 
 }
