@@ -1,5 +1,6 @@
 package server.myserver;
 
+import server.handlers.ChatHistoryHandler;
 import server.handlers.ClientHandler;
 import server.services.AuthenticationService;
 import server.services.impl.SimpleAuthenticationServiceImpl;
@@ -8,7 +9,9 @@ import server.services.impl.SqlAuthenticationServiceImpl;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class MyServer {
 
@@ -94,11 +97,15 @@ public class MyServer {
     }
 
     public synchronized void broadcastMessage(ClientHandler sender, String message) throws IOException {
+
+
         for (ClientHandler client : clients) {
 
             client.sendMessage(sender.getUsername(), message);
 
+
         }
+
 
     }
 
