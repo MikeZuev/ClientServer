@@ -8,7 +8,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class ClientHandler {
     private static final String AUTH_CMD_PREFIX = "/auth"; // + login + password
@@ -30,7 +32,14 @@ public class ClientHandler {
     private DataOutputStream out;
     private String username;
 
+    private ChatHistoryHandler chatHistoryHandler;
+
+
+
     public ClientHandler(MyServer myServer, Socket socket) {
+
+
+        chatHistoryHandler = new ChatHistoryHandler();
 
         this.myServer = myServer;
         this.clientSocket = socket;
@@ -97,7 +106,7 @@ public class ClientHandler {
 
 
 
-            out.writeUTF(AUTHOK_CMD_PREFIX + " " + username);
+            out.writeUTF(AUTHOK_CMD_PREFIX + " " + username + " " + chatHistoryHandler.readChatHistory()); // ????????????????????????????????
             myServer.subscribe(this);
             System.out.println("User: " + username + " connected to Chat");
             myServer.broadcastServerMessage(this, "Пользователь " + username + " подключился к чату");
@@ -160,6 +169,9 @@ public class ClientHandler {
     }
 
     public void sendMessage(String sender, String message) throws IOException {
+        String timeStamp = DateFormat.getInstance().format(new Date());
+
+        chatHistoryHandler.writeChatHistory(String.format("%s \n%s: %s", timeStamp, sender, message));
         out.writeUTF(String.format("%s %s %s", CLIENT_MSG_CMD_PREFIX, sender, message));
     }
 
